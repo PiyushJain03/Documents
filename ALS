@@ -1,0 +1,19 @@
+ALS Cluster creation commands:
+
+version: 1.2
+constructor-image-name: HP Helion Development Platform - Application Lifecycle Service Installer 2.0.0.548
+seed-node-image-name: HP Helion Development Platform - Application Lifecycle Service Seed Node 2.0.0.548
+cluster-title: hpe1
+cluster-prefix: hpe1
+az: nova
+services:
+services-on-core: false
+constructor-flavor: m1.small
+core-flavor: m1.large
+dea-flavor: m1.medium
+service-flavor: m1.medium
+
+
+./cf-mgmt --skip-ssl-validation create-cluster --keypair-name hlm-keys --admin-email admin@hpe.com --admin-password abc123 --load ../als.yml --network-name GuestNet --upstream-proxy http://172.16.1.5:8080 --http-proxy http://172.16.1.5:8080 --https-proxy http://172.16.1.5:8080 --ftp-proxy ftp://172.16.1.5:8080
+
+./cf-mgmt --skip-ssl-validation add-role dea --count 1 --flavor m1.large --keypair-name hlm-keys --load ../als.yml --network-name GuestNet --upstream-proxy http://172.16.1.5:8080 --http-proxy http://172.16.1.5:8080 --https-proxy http://172.16.1.5:8080 --ftp-proxy ftp://172.16.1.5:8080
