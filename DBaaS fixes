@@ -1,0 +1,38 @@
+After installing the DBaaS, I couldn't configure the haproxy configuration and when I click on DBaaS cluster/instances page on horizon it was going to the error state.
+Here is the fix I applied 
+1. Once we install DBaaS database endpoints points to https endpoints:
+
+stack@helion-cp1-c1-m1-mgmt:~$ openstack endpoint list | grep database
+| 1db3a4b084c744c2905d16b6f36b18ec | region1 | database                      | database       | True    | public    | https://172.16.244.13:8779/v1.0/$(tenant_id)s     |
+| b167910233344670ab83584316d1609a | region1 | database                      | database       | True    | admin     | https://172.16.244.13:8779/v1.0/$(tenant_id)s     |
+| d90a9c7eebd242f58bc0abbbccd10dbf | region1 | database                      | database       | True    | internal  | https://172.16.244.13:8779/v1.0/$(tenant_id)s     |
+
+I chnages all of then http endpoint like following:
+stack@helion-cp1-c1-m1-mgmt:~$ openstack endpoint list | grep database
+| 1db3a4b084c744c2905d16b6f36b18ec | region1 | database                      | database       | True    | public    | http://172.16.244.13:8779/v1.0/$(tenant_id)s     |
+| b167910233344670ab83584316d1609a | region1 | database                      | database       | True    | admin     | http://172.16.244.13:8779/v1.0/$(tenant_id)s     |
+| d90a9c7eebd242f58bc0abbbccd10dbf | region1 | database                      | database       | True    | internal  | http://172.16.244.13:8779/v1.0/$(tenant_id)s     |
+
+I used the following commands to do that:
+openstack endpoint set --url 'http://172.16.244.13:8779/v1.0/$(tenant_id)s' 1db3a4b084c744c2905d16b6f36b18ec
+openstack endpoint set --url 'http://172.16.244.13:8779/v1.0/$(tenant_id)s' b167910233344670ab83584316d1609a
+openstack endpoint set --url 'http://172.16.244.13:8779/v1.0/$(tenant_id)s' d90a9c7eebd242f58bc0abbbccd10dbf
+
+2. I was appliying the following haporxy settings
+listen trove_api
+    bind 172.16.244.13:8779 ssl crt {{ frontend_server_cert_directory }}/galway-public-cert 
+    option httpchk GET /
+    server trove-trove0_api-zl3v7i6rt2by 172.16.243.17 check inter 2000 rise 2 fall 5
+    
+but I did modified this to the following:
+listen trove_api
+    bind 172.16.244.13:8779 
+    option httpchk GET /
+    server trove-trove0_api-zl3v7i6rt2by 172.16.243.17 check inter 2000 rise 2 fall 5
+
+3. on the trove api endpoint I changed the public endpoint to non https and with port, like the following:
+
+root@trove-trove0-api-zl3v7i6rt2by:~# cat /etc/trove/trove.conf | grep publi
+#public_endpoint = https://172.16.240.28:
+public_endpoint = http://172.16.240.28:8779
+root@trove-trove0-api-zl3v7i6rt2by:~#
