@@ -1,0 +1,26 @@
+[ceph1]
+rbd_secret_uuid = 457eb676-33da-42ec-9a8c-9293d545c337
+rbd_user = cinder
+rbd_pool = volumes
+rbd_ceph_conf = /etc/ceph/ceph.conf
+volume_driver = cinder.volume.drivers.rbd.RBDDriver
+volume_backend_name = ceph
+
+
+[DEFAULT]
+backup_driver = cinder.backup.drivers.ceph
+backup_ceph_conf = /etc/ceph/ceph.conf
+backup_ceph_user = cinder-backup
+backup_ceph_pool = backups
+
+
+default_store = rbd
+stores = rbd
+rbd_store_pool = images
+rbd_store_user = glance
+rbd_store_ceph_conf = /etc/ceph/ceph.conf
+rbd_store_chunk_size = 8
+
+[libvirt]
+rbd_user = cinder
+rbd_secret_uuid = 457eb676-33da-42ec-9a8c-9293d545c337
